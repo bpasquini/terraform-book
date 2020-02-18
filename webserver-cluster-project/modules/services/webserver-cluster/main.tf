@@ -28,7 +28,7 @@ data "aws_subnet_ids" "default" {
 }
 
 data "template_file" "user_data" {
-    template = file("user_data.sh")
+    template = file("${path.module}/user_data.sh")
 
     vars = {
         server_port = var.server_port
@@ -39,7 +39,7 @@ data "template_file" "user_data" {
 
 resource "aws_launch_configuration" "example" {
   image_id          = "ami-0c55b159cbfafe1f0"
-  instance_type     = "t2.micro"
+  instance_type     = var.instance_type
   security_groups   = [aws_security_group.instance.id]
 
   user_data = data.template_file.user_data.rendered
@@ -58,12 +58,12 @@ resource "aws_autoscaling_group" "example" {
   target_group_arns = [aws_lb_target_group.asg.arn]
   health_check_type = "ELB"
 
-  min_size = 2
-  max_size = 10
+  min_size = var.min_size
+  max_size = var.max_size
 
   tag {
       key                   = "Name"
-      value                 = "{var.cluster_name}-asg"
+      value                 = "${var.cluster_name}-asg"
       propagate_at_launch   = true
   }
 }
